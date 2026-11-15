@@ -9,12 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Database\Factories\UserFactory;
 
 class User extends Authenticatable
 {
     use HasUuids;
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'auth_users';
     protected $primaryKey = 'id';
@@ -91,7 +92,7 @@ class User extends Authenticatable
 
     public function notificationByUserId(): HasMany { return $this->hasMany(\App\Models\Notification::class, 'user_id', 'id'); }
 
-    public function profileById(): HasMany { return $this->hasMany(\App\Models\Profile::class, 'id', 'id'); }
+    public function profileById(): HasOne { return $this->hasOne(\App\Models\Profile::class, 'id', 'id'); }
 
     public function reviewByUserId(): HasMany { return $this->hasMany(\App\Models\Review::class, 'user_id', 'id'); }
 

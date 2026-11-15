@@ -1,0 +1,2910 @@
+{
+  "info": {
+    "_postman_id": "8eeea2b5-1b47-4f2d-a71a-a1fe6792a523",
+    "name": "ANA REFI - Laravel REST API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated from routes/api.php. Local requests use real HTTP responses; all API routes are included."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "booking_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "competition_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "favorite_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "featureRequest_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "host_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "itemId_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "itemType_id",
+      "value": "product",
+      "type": "string"
+    },
+    {
+      "key": "listing_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "post_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "profile_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "review_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "serviceRequest_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "test_email",
+      "value": "postman-api-20261115-1936@example.invalid",
+      "type": "string"
+    },
+    {
+      "key": "test_phone",
+      "value": "+201155590736",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    },
+    {
+      "key": "volunteer_id",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "POST Api / V1 / Auth / Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/register",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"first_name\":\"Postman\",\"last_name\":\"API Test\",\"email\":\"{{test_email}}\",\"phone\":\"{{test_phone}}\",\"password\":\"TestPass123!\",\"password_confirmation\":\"TestPass123!\",\"account_type\":\"traveler\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s=Date.now().toString(); pm.collectionVariables.set('test_email','postman-'+s+'@example.invalid'); pm.collectionVariables.set('test_phone','+201'+s.slice(-9));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Auth / Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{test_email}}\",\"password\":\"TestPass123!\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Auth / User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/user",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Auth / Google / Callback",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/google/callback?state=invalid-postman-test&code=invalid-postman-test",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Auth / Google / Redirect",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/google/redirect",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "GET Api / V1 / Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/profile",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/profile",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bio\":\"Postman API test profile\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Profile / Become Host",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/profile/become-host",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT Api / V1 / Profile / Contact",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/profile/contact",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"phone\":\"+201000000001\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Profile / Select Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/profile/select-role",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"account_type\":\"traveler\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Statistics",
+      "item": [
+        {
+          "name": "GET Api / V1 / Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/stats",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Listings",
+      "item": [
+        {
+          "name": "GET Api / V1 / Listings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Listings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"type\":\"experience\",\"title\":\"Postman API test listing\",\"price\":0,\"status\":\"draft\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Listings / Featured",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings/featured",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Listings / {{listing Id}}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings/{{listing_id}}",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Listings / {{listing Id}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings/{{listing_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Listings / {{listing Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings/{{listing_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Listings / {{listing Id}} / Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings/{{listing_id}}/reviews",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Listings / {{listing Id}} / Reviews",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/listings/{{listing_id}}/reviews",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"rating\":5,\"comment\":\"Postman API test\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "GET Api / V1 / Favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/favorites",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT Api / V1 / Favorites",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/favorites",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"item_id\":\"00000000-0000-4000-8000-000000000000\",\"item_type\":\"product\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Favorites / By Id / {{favorite Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/favorites/by-id/{{favorite_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Favorites / {{itemType Id}} / {{itemId Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/favorites/{{itemType_id}}/{{itemId_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Competitions",
+      "item": [
+        {
+          "name": "GET Api / V1 / Competitions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/competitions",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Competitions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/competitions",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Postman API test competition\",\"category\":\"test\",\"location\":\"Local test\",\"starts_at\":\"2027-01-01T10:00:00Z\",\"ends_at\":\"2027-01-02T10:00:00Z\",\"status\":\"draft\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Competitions / {{competition Id}}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/competitions/{{competition_id}}",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Competitions / {{competition Id}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/competitions/{{competition_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Competitions / {{competition Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/competitions/{{competition_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Competitions / {{competition Id}} / Participants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/competitions/{{competition_id}}/participants",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "GET Api / V1 / Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/bookings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Bookings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/bookings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Bookings / {{booking Id}}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/bookings/{{booking_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Bookings / {{booking Id}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/bookings/{{booking_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Bookings / {{booking Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/bookings/{{booking_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "item": [
+        {
+          "name": "GET Api / V1 / Community / Posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/community/posts",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Community / Posts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/community/posts",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Postman API test\",\"body\":\"Automated local endpoint test.\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Community / Posts / {{post Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/community/posts/{{post_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "POST Api / V1 / Contact Messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/contact-messages",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Postman API Test\",\"email\":\"api-test@example.invalid\",\"message\":\"Automated local API test message.\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "GET Api / V1 / Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/notifications",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Notifications / Read All",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/notifications/read-all",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Notifications / {{notification Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/notifications/{{notification_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "PATCH Api / V1 / Reviews / {{review Id}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/reviews/{{review_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Reviews / {{review Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/reviews/{{review_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hosts",
+      "item": [
+        {
+          "name": "GET Api / V1 / Hosts / {{host Id}} / Listings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/hosts/{{host_id}}/listings",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Host Dashboard",
+      "item": [
+        {
+          "name": "GET Api / V1 / Host / Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/host/bookings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Host / Competitions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/host/competitions",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Host / Feature Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/host/feature-requests",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Host / Listings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/host/listings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Host / Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/host/stats",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT Api / V1 / Host / Verification",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/host/verification",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"first_name\":\"Postman\",\"last_name\":\"Test\",\"national_id\":\"12345678901234\",\"id_front_path\":\"test/front.jpg\",\"id_back_path\":\"test/back.jpg\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Feature Requests",
+      "item": [
+        {
+          "name": "POST Api / V1 / Feature Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/feature-requests",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Volunteer Services",
+      "item": [
+        {
+          "name": "GET Api / V1 / Volunteer Service Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/volunteer-service-requests",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Volunteer Service Requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/volunteer-service-requests",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Volunteer Service Requests / {{serviceRequest Id}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/volunteer-service-requests/{{serviceRequest_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Volunteers",
+      "item": [
+        {
+          "name": "GET Api / V1 / Volunteers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/volunteers",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Volunteers / Applications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/volunteers/applications",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"full_name\":\"Postman API Test\",\"email\":\"api-test@example.invalid\",\"phone\":\"+201000000000\",\"interest_area\":\"Testing\",\"availability\":\"Flexible\",\"motivation\":\"Testing the local volunteer application endpoint.\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Administration",
+      "item": [
+        {
+          "name": "GET Api / V1 / Admin / Feature Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/feature-requests",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Admin / Feature Requests / {{featureRequest Id}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/feature-requests/{{featureRequest_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Admin / Listings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/listings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Admin / Listings / {{listing Id}} / Featured",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/listings/{{listing_id}}/featured",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Admin / Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/users",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Admin / Users / {{user Id}} / Block",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/users/{{user_id}}/block",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Admin / Volunteers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/volunteers",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Api / V1 / Admin / Volunteers / {{volunteer Id}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/volunteers/{{volunteer_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Api / V1 / Admin / Volunteers / {{volunteer Id}}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/volunteers/{{volunteer_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Profiles",
+      "item": [
+        {
+          "name": "GET Api / V1 / Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/profiles",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Api / V1 / Profiles / {{profile Id}}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/profiles/{{profile_id}}",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "File Uploads",
+      "item": [
+        {
+          "name": "POST Api / V1 / Uploads / Identity Documents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/uploads/identity-documents",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Multipart upload; choose a local test image for the file field."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Api / V1 / Uploads / Listing Images",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/uploads/listing-images",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Multipart upload; choose a local test image for the file field."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "item": [
+        {
+          "name": "POST Auth Logout (after tests)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/logout",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isGoogleRedirect = pm.request.url.toString().includes('/auth/google/redirect'); if (isGoogleRedirect) { pm.test('Google OAuth is explicitly unconfigured (503)', function(){ pm.expect(pm.response.code).to.eql(503); }); } else { pm.test('No unexpected server error', function(){ pm.expect(pm.response.code).to.be.below(500); }); } if (pm.request.url.toString().endsWith('/auth/register')) { pm.test('Registration returns a token', function(){ pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/login')) { pm.test('Login succeeds', function(){ pm.expect(pm.response.code).to.eql(200); pm.expect(pm.response.json().token).to.be.a('string'); }); } if (pm.request.url.toString().endsWith('/auth/google/callback')) { pm.test('Invalid OAuth callback is rejected', function(){ pm.expect(pm.response.code).to.eql(422); }); }"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "name": "Session Cleanup"
+    }
+  ]
+}
