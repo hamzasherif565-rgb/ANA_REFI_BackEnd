@@ -52,7 +52,8 @@ class AuthController extends Controller
                 'aud' => 'authenticated', 'role' => 'authenticated', 'email_confirmed_at' => now(), 'is_sso_user' => true,
                 'raw_user_meta_data' => ['name' => $googleUser['name'] ?? '', 'picture' => $googleUser['picture'] ?? null]]);
             Profile::updateOrCreate(['id' => $user->id], ['display_name' => $googleUser['name'] ?? null, 'avatar_url' => $googleUser['picture'] ?? null, 'email' => $user->email]);
-            $user->userRoleByUserId()->firstOrCreate(['role' => 'traveler']);
+            // The legacy role table stores `user` while profile.account_type stores `traveler`.
+            $user->userRoleByUserId()->firstOrCreate(['role' => 'user']);
         }
         abort_if($user->banned_until && $user->banned_until->isFuture(), 403, 'This account is blocked.');
         $user->tokens()->delete();
@@ -85,7 +86,8 @@ class AuthController extends Controller
             'account_type' => $data['account_type'], 'role_selected' => true]);
         $profile->save();
         UserContact::updateOrCreate(['user_id' => $user->id], ['phone' => $data['phone']]);
-        $user->userRoleByUserId()->firstOrCreate(['role' => $data['account_type']]);
+        // The legacy role table accepts `user`, `host`, and `admin`; `traveler` is a profile type.
+        $user->userRoleByUserId()->firstOrCreate(['role' => $data['account_type'] === 'traveler' ? 'user' : 'host']);
 
         if ($data['account_type'] === 'host' && !empty($data['id_front']) && !empty($data['id_back'])) {
             HostVerification::updateOrCreate(['user_id' => $user->id], [

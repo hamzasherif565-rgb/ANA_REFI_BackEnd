@@ -1,0 +1,28 @@
+$kind: collection
+description: Generated from routes/api.php. Local requests use real HTTP responses; all API routes are included.
+variables:
+  base_url: http://127.0.0.1:8000
+  booking_id: 00000000-0000-4000-8000-000000000000
+  competition_id: 00000000-0000-4000-8000-000000000000
+  favorite_id: 00000000-0000-4000-8000-000000000000
+  featureRequest_id: 00000000-0000-4000-8000-000000000000
+  host_id: 00000000-0000-4000-8000-000000000000
+  itemId_id: 00000000-0000-4000-8000-000000000000
+  itemType_id: product
+  listing_id: 00000000-0000-4000-8000-000000000000
+  notification_id: 00000000-0000-4000-8000-000000000000
+  post_id: 00000000-0000-4000-8000-000000000000
+  profile_id: 00000000-0000-4000-8000-000000000000
+  review_id: 00000000-0000-4000-8000-000000000000
+  serviceRequest_id: 00000000-0000-4000-8000-000000000000
+  test_email: postman-api-20261115-1936@example.invalid
+  test_phone: "+201155590736"
+  token: ""
+  user_id: 00000000-0000-4000-8000-000000000000
+  volunteer_id: 00000000-0000-4000-8000-000000000000
+auth:
+  - id: e40d6f44-669a-46fa-a78d-712658201b64
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{token}}"

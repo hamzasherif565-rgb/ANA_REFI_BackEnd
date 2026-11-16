@@ -1,0 +1,56 @@
+$kind: http-request
+name: POST Api / V1 / Listings
+description: "Creates a listing for the authenticated host.\n\nEndpoint: /api/v1/listings.\n\nParameters, access, and request: Authenticated; owner is the caller; Required: type, title, price. Optional: title_en, description, description_en, category, discount (0–100), capacity (at least 1), location, images (up to 6 strings), starts_at, ends_at (not before start), status (active, draft, blocked). is_featured is prohibited. Returns 201.\n\nExpected response: 201.\n\nCommon failure responses: validation errors use 422; missing or invalid authentication uses 401; authorization checks use 403; missing or deliberately hidden resources use 404, as applicable."
+url: "{{base_url}}/api/v1/listings"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"type":"experience","title":"Postman API test listing","price":0,"status":"draft"}'
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('No unexpected server error', function () { pm.expect(pm.response.code).to.be.below(500); });
+      const url = pm.request.url.toString();
+      if (url.endsWith('/auth/register')) {
+        pm.test('Registration creates a traveler and returns a bearer token', function () {
+          pm.response.to.have.status(201);
+          const body = pm.response.json();
+          pm.expect(body).to.have.property('token').that.is.a('string').and.not.empty;
+          pm.expect(body).to.have.property('data');
+          pm.collectionVariables.set('token', body.token);
+          pm.environment.set('token', body.token);
+        });
+      }
+      if (url.endsWith('/auth/login')) {
+        pm.test('Login returns a bearer token', function () {
+          pm.response.to.have.status(200);
+          const body = pm.response.json();
+          pm.expect(body).to.have.property('token').that.is.a('string').and.not.empty;
+          pm.collectionVariables.set('token', body.token);
+          pm.environment.set('token', body.token);
+        });
+      }
+      if (url.includes('/auth/google/callback')) {
+        pm.test('Invalid OAuth callback is rejected', function () { pm.response.to.have.status(422); });
+      }
+      if (url.endsWith('/auth/google/redirect')) {
+        pm.test('Google OAuth is explicitly unconfigured (503)', function () { pm.response.to.have.status(503); });
+      }
+      if (url.includes('/auth/user')) {
+        pm.test('Authenticated user endpoint returns user data', function () {
+          pm.response.to.have.status(200);
+          pm.expect(pm.response.json()).to.have.nested.property('data.user.id');
+        });
+      }
+      if (url.endsWith('/auth/logout')) {
+        pm.test('Logout revokes the session', function () { pm.response.to.have.status(204); });
+      }
+    language: text/javascript
+order: 2000

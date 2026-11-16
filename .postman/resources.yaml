@@ -1,0 +1,15 @@
+# Use this workspace to collaborate
+workspace:
+  id: 615690ae-ae2e-4de9-8aa0-9318f3c37ebb
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/ANA REFI - Laravel REST API: 50da829d-7637-4e9a-854b-9649676d5ac0
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/
