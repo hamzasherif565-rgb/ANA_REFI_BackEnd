@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Profile;
 use App\Models\UserContact;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
@@ -60,7 +61,7 @@ class ProfileController extends Controller
         $profile = Profile::firstOrCreate(['id' => $user->id]);
         abort_if($profile->role_selected && $profile->account_type !== $data['account_type'], 403, 'Your account type has already been selected.');
         $profile->update(['account_type' => $data['account_type'], 'role_selected' => true]);
-        $user->userRoleByUserId()->firstOrCreate(['role' => $data['account_type']]);
+        $user->userRoleByUserId()->firstOrCreate(['role' => UserRole::forAccountType($data['account_type'])]);
         return $this->show($request);
     }
 }

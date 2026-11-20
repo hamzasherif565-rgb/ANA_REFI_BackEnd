@@ -79,6 +79,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('feature-requests', [AdminController::class, 'createFeatureRequest'])->middleware('role:host');
         Route::get('host/feature-requests', [AdminController::class, 'featureRequests'])->middleware('role:host');
         Route::post('volunteers/applications', [AdminController::class, 'applyVolunteer']);
+        Route::get('volunteers/application', [AdminController::class, 'myVolunteerApplication']);
         Route::get('volunteer-service-requests', [AdminController::class, 'serviceRequests']);
         Route::post('volunteer-service-requests', [AdminController::class, 'createServiceRequest']);
         Route::patch('volunteer-service-requests/{serviceRequest}', [AdminController::class, 'updateServiceRequest']);

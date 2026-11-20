@@ -75,7 +75,7 @@ Registration/login payload shape:
 | GET | `/listings/{listing}/reviews` | Public | Newest first; `per_page` defaults to 20 (maximum 100). |
 | GET | `/community/posts` | Public | Newest first; `per_page` defaults to 60 (maximum 100). |
 | POST | `/contact-messages` | Public; 10 requests/minute | JSON: `name` (max 150), `email`, `message` (5–5000 characters). Returns `201`. |
-| GET | `/volunteers` | Route is public | Intended to list approved volunteers. Current handler dereferences the authenticated user despite having no auth middleware, so anonymous requests may fail; see implementation notes. |
+| GET | `/volunteers` | Public; authenticated admins see all applications | Anonymous users and non-admin users only see approved volunteers. |
 
 Listing collection items contain `id`, `host_id`, `type`, bilingual title/description, category, price, discount, capacity, location, images, dates, `is_featured`, status, timestamps, optional host summary, average rating, and review count.
 
@@ -127,6 +127,7 @@ Booking creation rejects inactive/mismatched listings, a host booking their own 
 | Method | Endpoint | Access | Request / behavior |
 | --- | --- | --- | --- |
 | POST | `/volunteers/applications` | Authenticated | Required: `full_name`, `email`, `phone`, `interest_area`, `availability`, `motivation`; optional: `age`, `avatar_url`, `bio`, `location`, `skills[]`, `languages[]`, `experience`, `accessibility`. Upserts caller's application with status pending; returns `201`. |
+| GET | `/volunteers/application` | Authenticated | Returns the caller's volunteer application or `null`. |
 | GET | `/volunteer-service-requests` | Authenticated | Service requests assigned to caller as volunteer; 30 per page. |
 | POST | `/volunteer-service-requests` | Authenticated | Required: approved `volunteer_id`, `requested_date` (today or later), `location`, `reason`; optional `requested_time`, `people_count` (1–100), `notes`. Requester is derived from token. Returns `201`. |
 | PATCH | `/volunteer-service-requests/{serviceRequest}` | Assigned volunteer/admin | Required `status`: `pending`, `approved`, `rejected`, `completed`, or `cancelled`. |
@@ -158,5 +159,5 @@ Set `APP_URL` to the API origin. Google OAuth uses the Laravel service configura
 
 ## Implementation notes
 
-- The API requirements in `API_REQUIREMENTS.md` describe broader frontend expectations. This document follows the current routes and controller behavior. Notable differences: there is no `/admin/overview` endpoint; `/admin/users` is the implemented user listing; listing `status` is validated but ignored by the public listing query; competitions do not accept a sort parameter; featured flags are admin-controlled; favorites return an array rather than pagination; and public `/volunteers` currently appears to require an authenticated user in its controller despite having no route middleware.
+- The API requirements in `API_REQUIREMENTS.md` describe broader frontend expectations. This document follows the current routes and controller behavior. Notable differences: there is no `/admin/overview` endpoint; `/admin/users` is the implemented user listing; competitions do not accept a sort parameter; featured flags are admin-controlled; and favorites return an array rather than pagination.
 - These notes describe observable implementation behavior and do not imply that behavior has been exercised against a production database.

@@ -7,9 +7,11 @@ use App\Models\HostVerification;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\UserContact;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -75,27 +77,30 @@ class AuthController extends Controller
             'id_back' => ['sometimes', 'nullable', 'string', 'max:1024'],
         ]);
 
-        $user = User::create([
-            'id' => (string) str()->uuid(), 'email' => $data['email'], 'phone' => $data['phone'],
-            'encrypted_password' => Hash::make($data['password']), 'aud' => 'authenticated', 'role' => 'authenticated',
-            'raw_user_meta_data' => ['first_name' => $data['first_name'], 'last_name' => $data['last_name']],
-        ]);
-
-        $profile = Profile::firstOrNew(['id' => $user->id]);
-        $profile->fill(['display_name' => trim($data['first_name'].' '.$data['last_name']), 'email' => $user->email,
-            'account_type' => $data['account_type'], 'role_selected' => true]);
-        $profile->save();
-        UserContact::updateOrCreate(['user_id' => $user->id], ['phone' => $data['phone']]);
-        // The legacy role table accepts `user`, `host`, and `admin`; `traveler` is a profile type.
-        $user->userRoleByUserId()->firstOrCreate(['role' => $data['account_type'] === 'traveler' ? 'user' : 'host']);
-
-        if ($data['account_type'] === 'host' && !empty($data['id_front']) && !empty($data['id_back'])) {
-            HostVerification::updateOrCreate(['user_id' => $user->id], [
-                'first_name' => $data['first_name'], 'last_name' => $data['last_name'],
-                'national_id' => $data['national_id'], 'id_front_path' => $data['id_front'],
-                'id_back_path' => $data['id_back'], 'status' => 'pending',
+        $user = DB::transaction(function () use ($data): User {
+            $user = User::create([
+                'id' => (string) str()->uuid(), 'email' => $data['email'], 'phone' => $data['phone'],
+                'encrypted_password' => Hash::make($data['password']), 'aud' => 'authenticated', 'role' => 'authenticated',
+                'raw_user_meta_data' => ['first_name' => $data['first_name'], 'last_name' => $data['last_name']],
             ]);
-        }
+
+            $profile = Profile::firstOrNew(['id' => $user->id]);
+            $profile->fill(['display_name' => trim($data['first_name'].' '.$data['last_name']), 'email' => $user->email,
+                'account_type' => $data['account_type'], 'role_selected' => true]);
+            $profile->save();
+            UserContact::updateOrCreate(['user_id' => $user->id], ['phone' => $data['phone']]);
+            $user->userRoleByUserId()->firstOrCreate(['role' => UserRole::forAccountType($data['account_type'])]);
+
+            if ($data['account_type'] === 'host' && !empty($data['id_front']) && !empty($data['id_back'])) {
+                HostVerification::updateOrCreate(['user_id' => $user->id], [
+                    'first_name' => $data['first_name'], 'last_name' => $data['last_name'],
+                    'national_id' => $data['national_id'], 'id_front_path' => $data['id_front'],
+                    'id_back_path' => $data['id_back'], 'status' => 'pending',
+                ]);
+            }
+
+            return $user;
+        });
 
         return response()->json($this->payload($user), 201);
     }

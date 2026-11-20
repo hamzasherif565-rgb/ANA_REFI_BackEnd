@@ -106,7 +106,8 @@ class AdminController extends Controller
     public function volunteers(Request $request)
     {
         $query = VolunteerRequest::query()->latest();
-        if ($request->user()->userRoleByUserId()->where('role', 'admin')->doesntExist()) $query->where('status', 'approved');
+        // This route is public; anonymous visitors should only see approved volunteers.
+        if (!$request->user() || $request->user()->userRoleByUserId()->where('role', 'admin')->doesntExist()) $query->where('status', 'approved');
         return response()->json(['data' => $query->paginate(min((int) $request->integer('per_page', 30), 100))]);
     }
 
@@ -119,6 +120,11 @@ class AdminController extends Controller
             'bio' => ['sometimes', 'nullable', 'string'], 'location' => ['sometimes', 'nullable', 'string'], 'skills' => ['sometimes', 'array'],
             'languages' => ['sometimes', 'array'], 'experience' => ['sometimes', 'nullable', 'string'], 'accessibility' => ['sometimes', 'nullable', 'string']]);
         return response()->json(['data' => VolunteerRequest::updateOrCreate(['user_id' => $request->user()->id], [...$data, 'status' => 'pending'])], 201);
+    }
+
+    public function myVolunteerApplication(Request $request)
+    {
+        return response()->json(['data' => VolunteerRequest::where('user_id', $request->user()->id)->latest()->first()]);
     }
 
     public function updateVolunteer(Request $request, VolunteerRequest $volunteer)

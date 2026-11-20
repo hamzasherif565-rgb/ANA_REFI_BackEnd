@@ -25,5 +25,10 @@ class UserRole extends Model
 );
     }
 
+    public static function forAccountType(string $accountType): string
+    {
+        return $accountType === 'traveler' ? 'user' : $accountType;
+    }
+
     public function userByUserId(): BelongsTo { return $this->belongsTo(\App\Models\User::class, 'user_id', 'id'); }
 }
