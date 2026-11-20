@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Profile;
 use App\Models\UserContact;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -27,12 +28,15 @@ class BookingController extends Controller
             'item_id' => ['required', 'uuid'], 'booking_date' => ['sometimes', 'nullable', 'date', 'after_or_equal:today'],
             'guests' => ['sometimes', 'integer', 'min:1', 'max:100'], 'quantity' => ['sometimes', 'integer', 'min:1', 'max:100'], 'notes' => ['sometimes', 'nullable', 'string', 'max:2000']]);
 
-        $booking = DB::transaction(function () use ($request, $data) {
+        try {
+            $booking = DB::transaction(function () use ($request, $data) {
             $hostId = null; $listingId = null; $amount = 0; $itemType = $data['item_type'];
             if ($itemType === 'competition') {
                 $item = Competition::whereKey($data['item_id'])->lockForUpdate()->firstOrFail();
                 abort_unless(in_array($item->status, ['open', 'upcoming'], true), 422, 'This competition is not accepting registrations.');
                 abort_if($item->capacity && $item->participants_count >= $item->capacity, 422, 'This competition is full.');
+                abort_if(Booking::where('user_id', $request->user()->id)->where('item_type', 'competition')
+                    ->where('item_id', $item->id)->where('status', '!=', 'cancelled')->exists(), 422, 'You are already registered for this competition.');
                 $hostId = $item->host_id; $amount = (int) $item->entry_fee;
             } else {
                 $item = Listing::whereKey($data['item_id'])->where('type', $itemType)->where('status', 'active')->firstOrFail();
@@ -46,11 +50,16 @@ class BookingController extends Controller
             $booking = Booking::create(['user_id' => $request->user()->id, 'item_type' => $itemType, 'item_id' => $item->id,
                 'host_id' => $hostId, 'listing_id' => $listingId, 'status' => 'pending', 'amount' => $amount,
                 'booking_date' => $data['booking_date'] ?? null, 'guests' => (int) ($data['quantity'] ?? $data['guests'] ?? 1), 'notes' => $data['notes'] ?? null]);
+            Notification::create(['user_id' => $booking->user_id, 'type' => 'booking_status', 'title' => 'Booking confirmation',
+                'body' => 'Your booking has been received.', 'link' => '/payment/'.$booking->id, 'read' => false]);
             return $booking;
-        });
-
-        Notification::create(['user_id' => $booking->user_id, 'type' => 'booking_status', 'title' => 'Booking confirmation',
-            'body' => 'Your booking has been received.', 'link' => '/payment/'.$booking->id, 'read' => false]);
+            });
+        } catch (QueryException $error) {
+            if ($data['item_type'] === 'competition' && str_contains($error->getMessage(), 'bookings_unique_active_competition_user')) {
+                return response()->json(['message' => 'You are already registered for this competition.'], 422);
+            }
+            throw $error;
+        }
         return response()->json(['data' => $this->present($booking)], 201);
     }
 
@@ -117,7 +126,7 @@ class BookingController extends Controller
     {
         $bookings = Booking::where('host_id', $request->user()->id);
         $count = (clone $bookings)->count();
-        $revenue = (clone $bookings)->whereNotIn('status', ['cancelled'])->sum('amount');
+        $revenue = (clone $bookings)->whereIn('status', ['confirmed', 'completed'])->sum('amount');
         return response()->json(['data' => ['revenue' => (int) $revenue, 'pending_revenue' => (int) (clone $bookings)->where('status', 'pending')->sum('amount'),
             'bookings_count' => $count, 'listings_count' => Listing::where('host_id', $request->user()->id)->count(), 'average_booking_value' => $count ? round($revenue / $count, 2) : 0]]);
     }

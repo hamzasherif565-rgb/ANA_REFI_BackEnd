@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
@@ -21,10 +22,15 @@ class AuthController extends Controller
     public function googleRedirect(Request $request)
     {
         $clientId = config('services.google.client_id');
-        abort_unless($clientId, 503, 'Google sign-in is not configured for this application.');
         $frontUrl = rtrim(config('services.google.frontend_url'), '/');
         $return = (string) $request->query('redirect_uri', $frontUrl.'/auth');
-        abort_unless(parse_url($return, PHP_URL_SCHEME).'://'.parse_url($return, PHP_URL_HOST).(parse_url($return, PHP_URL_PORT) ? ':'.parse_url($return, PHP_URL_PORT) : '') === $frontUrl, 422, 'Invalid OAuth return URL.');
+        $returnOrigin = $this->originOf($return);
+        $allowedOrigins = array_filter(array_merge([$this->originOf($frontUrl)], config('cors.allowed_origins', [])));
+        abort_unless($returnOrigin && in_array($returnOrigin, $allowedOrigins, true), 422, 'Invalid OAuth return URL.');
+        if (!$clientId || !config('services.google.client_secret')) {
+            return redirect()->away($this->oauthErrorUrl($return, 'google_not_configured'))
+                ->withHeaders(['Referrer-Policy' => 'no-referrer']);
+        }
         $state = Str::random(48);
         Cache::put('google_oauth_state:'.$state, $return, now()->addMinutes(10));
         $redirectUri = route('api.v1.auth.google.callback');
@@ -38,14 +44,34 @@ class AuthController extends Controller
     public function googleCallback(Request $request)
     {
         $return = Cache::pull('google_oauth_state:'.(string) $request->query('state'));
-        abort_unless($return && $request->filled('code'), 422, 'OAuth request expired or invalid.');
-        $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
-            'code' => $request->query('code'), 'client_id' => config('services.google.client_id'),
-            'client_secret' => config('services.google.client_secret'), 'redirect_uri' => route('api.v1.auth.google.callback'),
-            'grant_type' => 'authorization_code',
-        ])->throw()->json();
-        $googleUser = Http::withToken($tokenResponse['access_token'])->get('https://www.googleapis.com/oauth2/v2/userinfo')->throw()->json();
-        abort_unless(!empty($googleUser['email']) && ($googleUser['verified_email'] ?? false), 422, 'Google did not return a verified email address.');
+        $fallbackReturn = rtrim(config('services.google.frontend_url'), '/').'/auth';
+        if (!$return) {
+            return redirect()->away($this->oauthErrorUrl($fallbackReturn, 'callback_failed'));
+        }
+        if ($request->query('error') === 'access_denied') {
+            return redirect()->away($this->oauthErrorUrl($return, 'cancelled'))
+                ->withHeaders(['Referrer-Policy' => 'no-referrer']);
+        }
+        if (!$request->filled('code')) {
+            return redirect()->away($this->oauthErrorUrl($return, 'callback_failed'));
+        }
+
+        try {
+            $tokenResponse = Http::asForm()->connectTimeout(5)->timeout(10)->post('https://oauth2.googleapis.com/token', [
+                'code' => $request->query('code'), 'client_id' => config('services.google.client_id'),
+                'client_secret' => config('services.google.client_secret'), 'redirect_uri' => route('api.v1.auth.google.callback'),
+                'grant_type' => 'authorization_code',
+            ])->throw()->json();
+            $googleUser = Http::withToken($tokenResponse['access_token'])->connectTimeout(5)->timeout(10)
+                ->get('https://www.googleapis.com/oauth2/v2/userinfo')->throw()->json();
+        } catch (\Throwable $error) {
+            Log::warning('Google OAuth callback failed', ['exception' => $error::class]);
+            return redirect()->away($this->oauthErrorUrl($return, 'callback_failed'))
+                ->withHeaders(['Referrer-Policy' => 'no-referrer']);
+        }
+        if (empty($googleUser['email']) || !($googleUser['verified_email'] ?? false)) {
+            return redirect()->away($this->oauthErrorUrl($return, 'unverified_email'));
+        }
 
         $user = User::where('email', $googleUser['email'])->first();
         if (!$user) {
@@ -57,10 +83,30 @@ class AuthController extends Controller
             // The legacy role table stores `user` while profile.account_type stores `traveler`.
             $user->userRoleByUserId()->firstOrCreate(['role' => 'user']);
         }
-        abort_if($user->banned_until && $user->banned_until->isFuture(), 403, 'This account is blocked.');
+        if ($this->accountIsBlocked($user)) {
+            return redirect()->away($this->oauthErrorUrl($return, 'account_blocked'));
+        }
         $user->tokens()->delete();
         $token = $user->createToken('react-app')->plainTextToken;
         return redirect()->away(rtrim($return, '/').'#api_token='.rawurlencode($token))->withHeaders(['Referrer-Policy' => 'no-referrer']);
+    }
+
+    private function originOf(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (!$parts || empty($parts['scheme']) || empty($parts['host']) || !in_array(strtolower($parts['scheme']), ['http', 'https'], true)) {
+            return null;
+        }
+        return strtolower($parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : ''));
+    }
+
+    private function oauthErrorUrl(string $return, string $error): string
+    {
+        $parts = parse_url($return) ?: [];
+        parse_str($parts['query'] ?? '', $query);
+        $query['oauth_error'] = $error;
+        $origin = ($parts['scheme'] ?? 'https').'://'.($parts['host'] ?? 'localhost').(isset($parts['port']) ? ':'.$parts['port'] : '');
+        return $origin.($parts['path'] ?? '/auth').'?'.http_build_query($query).(isset($parts['fragment']) ? '#'.$parts['fragment'] : '');
     }
 
     public function register(Request $request)
@@ -114,7 +160,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'The provided credentials are incorrect.'], 422);
         }
 
-        if ($user->banned_until && $user->banned_until->isFuture()) {
+        if ($this->accountIsBlocked($user)) {
             return response()->json(['message' => 'This account is blocked.'], 403);
         }
 
@@ -151,5 +197,11 @@ class AuthController extends Controller
             'is_blocked' => $profile->is_blocked, 'age' => $profile->age, 'location' => $profile->location,
             'email' => $user->email, 'phone' => $phone,
         ], 'roles' => $roles];
+    }
+
+    private function accountIsBlocked(User $user): bool
+    {
+        return ($user->banned_until && $user->banned_until->isFuture())
+            || (bool) Profile::whereKey($user->id)->value('is_blocked');
     }
 }
