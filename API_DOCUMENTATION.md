@@ -98,12 +98,17 @@ Listing collection items contain `id`, `host_id`, `type`, bilingual title/descri
 | GET | `/bookings` | Authenticated | Current user's bookings, newest first; `per_page` defaults to 20 (max 100). |
 | POST | `/bookings` | Authenticated | Required: `item_type` (`competition`, `stay`, `experience`, `product`), `item_id` UUID. Optional: `booking_date` (today or later), `guests` (1–100), `quantity` (1–100), `notes` (max 2000). Server calculates amount and host; client cannot provide either. Creates pending booking and a confirmation notification; returns `201`. |
 | GET | `/bookings/{booking}` | Booking owner, host, or admin | Booking and resolved item summary. |
-| PATCH | `/bookings/{booking}` | Booking owner/host/admin, subject to allowed status changes | Required `status` (`pending`, `confirmed`, `cancelled`, `completed`); optional `notes`. Traveler may confirm/cancel; host may confirm/cancel/complete; admin may set any listed status. Completed/cancelled bookings cannot be changed. |
-| DELETE | `/bookings/{booking}` | Booking host/admin | Deletes booking; `204`. |
+| PATCH | `/bookings/{booking}` | Booking owner/host/admin, subject to allowed status changes | Required `status` (`pending`, `confirmed`, `cancelled`, `completed`); optional `notes`. A client cannot confirm a booking: confirmation is only applied by a verified payment webhook. Hosts may cancel or complete and owners may cancel. Completed/cancelled bookings cannot be changed. |
+| DELETE | `/bookings/{booking}` | Booking host/admin | Deletes booking only if no payment attempt exists; otherwise returns `422` to retain the financial audit record. |
+| POST | `/bookings/{booking}/payment-intentions` | Booking owner | Creates a Paymob hosted checkout using the server-calculated booking amount; returns a checkout URL. An active attempt blocks duplicates for 30 minutes. |
+| GET | `/bookings/{booking}/payment` | Booking owner, host, admin | Returns booking/payment status, amount, currency, and current attempt expiry. |
+| POST | `/payments/paymob/webhook?hmac=...` | Paymob server callback | Public callback protected by Paymob HMAC-SHA512; verifies configured integration, order, amount and currency. Only a valid successful callback marks payment paid and confirms a booking. Duplicate callbacks are idempotent. |
 | GET | `/host/bookings` | Host | Host's bookings; `per_page` defaults to 100 (max 100). Includes guest name and phone. |
 | GET | `/host/stats` | Host | Host totals: revenue, pending revenue, booking count, listing count, average booking value. |
 
 Booking creation rejects inactive/mismatched listings, a host booking their own listing, full competitions, and quantities above listing capacity. Competition bookings require status `open` or `upcoming`; competition capacity is checked against participant count. Product amount uses discounted price times quantity; other listing amount uses discounted price times guests. Competition amount uses entry fee.
+
+Payment statuses are `pending`, `paid`, `failed`, or `cancelled`. A successful verified callback confirms a pending booking; browser redirects never change state. Payment attempt expiry is 30 minutes. Paid booking cancellation is blocked because refunds are not implemented. Late or duplicate successful charges are retained and flagged for manual review rather than silently confirming or hiding the charge.
 
 ## Favorites, reviews, notifications, community
 
@@ -131,10 +136,13 @@ Booking creation rejects inactive/mismatched listings, a host booking their own 
 | GET | `/volunteer-service-requests` | Authenticated | Service requests assigned to caller as volunteer; 30 per page. |
 | POST | `/volunteer-service-requests` | Authenticated | Required: approved `volunteer_id`, `requested_date` (today or later), `location`, `reason`; optional `requested_time`, `people_count` (1–100), `notes`. Requester is derived from token. Returns `201`. |
 | PATCH | `/volunteer-service-requests/{serviceRequest}` | Assigned volunteer/admin | Required `status`: `pending`, `approved`, `rejected`, `completed`, or `cancelled`. |
-| POST | `/feature-requests` | Host | Required `listing_id` (owned product UUID), `amount` (non-negative integer), `payment_method` (max 40). Payment and request status start pending. Returns `201`. |
+| GET | `/feature-requests/price` | Public | Current server-configured feature request price in EGP. |
+| POST | `/feature-requests` | Host | Required `listing_id` (owned product UUID). Amount is set from `FEATURE_REQUEST_PRICE_EGP`; payment starts pending. Reuses an existing pending request for that host/listing. |
+| POST | `/feature-requests/{featureRequest}/payment-intentions` | Owning host | Creates a Paymob hosted checkout using server-calculated feature price. |
+| GET | `/feature-requests/{featureRequest}/payment` | Owning host/admin | Returns verified payment and moderation status. |
 | GET | `/host/feature-requests` | Host (own requests); admin (all) | Paginated feature requests. |
 | GET | `/admin/feature-requests` | Admin | Paginated feature requests. |
-| PATCH | `/admin/feature-requests/{featureRequest}` | Admin | Required `status` (`approved`, `rejected`, `pending`); optional `admin_note` (max 2000). Approval marks the listing featured. |
+| PATCH | `/admin/feature-requests/{featureRequest}` | Admin | Required `status` (`approved`, `rejected`, `pending`); optional `admin_note` (max 2000). Approval is allowed only after verified payment and then marks the listing featured. |
 
 ## Admin endpoints
 
@@ -155,7 +163,7 @@ Host-only endpoints also include `GET /host/listings` and `GET /host/competition
 
 ## Environment configuration
 
-Set `APP_URL` to the API origin. Google OAuth uses the Laravel service configuration sourced from `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_FRONTEND_URL`. Ensure Sanctum token authentication and public storage URLs are configured for the deployment. Never send payment card details to this API; this code has no card payment endpoint.
+Set `APP_URL` to the HTTPS API origin and `PAYMOB_FRONTEND_URL` to the HTTPS frontend origin. Add Paymob sandbox `PAYMOB_SECRET_KEY`, `PAYMOB_PUBLIC_KEY`, `PAYMOB_INTEGRATION_ID`, and `PAYMOB_HMAC_SECRET` to the deployment secret store. Configure the integration's transaction processed callback as `POST /api/v1/payments/paymob/webhook`; the Paymob dashboard should append the HMAC query parameter. Run `php artisan migrate --force` during deployment. Replace the sandbox credentials with live credentials only after sandbox verification and merchant approval. Card number and CVV are handled only on Paymob-hosted checkout and are never stored here. Until these environment values are set, checkout returns `503` and no payment is attempted.
 
 ## Implementation notes
 

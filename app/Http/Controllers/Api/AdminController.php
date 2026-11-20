@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
+    public function featurePrice()
+    {
+        return response()->json(['data' => ['amount_egp' => (int) config('services.paymob.feature_price_egp', 500), 'currency' => 'EGP']]);
+    }
+
     public function listings(Request $request)
     {
         return response()->json(['data' => Listing::latest()->paginate(min((int) $request->integer('per_page', 100), 100))]);
@@ -74,15 +79,58 @@ class AdminController extends Controller
 
     public function createFeatureRequest(Request $request)
     {
-        $data = $request->validate(['listing_id' => ['required', 'uuid', 'exists:public_listings,id'], 'amount' => ['required', 'integer', 'min:0'], 'payment_method' => ['required', 'string', 'max:40']]);
+        $data = $request->validate(['listing_id' => ['required', 'uuid', 'exists:public_listings,id']]);
         $listing = Listing::findOrFail($data['listing_id']);
         abort_unless($listing->host_id === $request->user()->id && $listing->type === 'product', 403);
-        return response()->json(['data' => FeatureRequest::create([...$data, 'host_id' => $request->user()->id, 'payment_status' => 'pending', 'status' => 'pending'])], 201);
+        $featureRequest = FeatureRequest::firstOrCreate(
+            ['listing_id' => $listing->id, 'host_id' => $request->user()->id, 'status' => 'pending'],
+            ['amount' => (int) config('services.paymob.feature_price_egp', 500), 'payment_method' => 'paymob', 'payment_status' => 'pending'],
+        );
+        return response()->json(['data' => $featureRequest], $featureRequest->wasRecentlyCreated ? 201 : 200);
+    }
+
+    public function createFeaturePaymentIntent(Request $request, FeatureRequest $featureRequest, \App\Services\PaymobService $paymob)
+    {
+        abort_unless($featureRequest->host_id === $request->user()->id, 403);
+        abort_unless($featureRequest->status === 'pending' && $featureRequest->payment_status !== 'paid', 422, 'This feature request is no longer payable.');
+        abort_unless(config('services.paymob.secret_key') && config('services.paymob.public_key') && config('services.paymob.integration_id') && config('services.paymob.hmac_secret'), 503, 'Electronic payments are not configured yet.');
+        $phone = $request->user()->phone ?: UserContact::where('user_id', $request->user()->id)->value('phone');
+        abort_unless($phone, 422, 'Add a phone number to your profile before paying.');
+        abort_if(\App\Models\Payment::where('feature_request_id', $featureRequest->id)->where('status', 'pending')->where('expires_at', '>', now())->exists(), 409, 'A payment attempt is already pending.');
+
+        $payment = \App\Models\Payment::create([
+            'feature_request_id' => $featureRequest->id, 'provider' => 'paymob', 'status' => 'pending',
+            'amount_cents' => $featureRequest->amount * 100, 'currency' => 'EGP',
+            'expires_at' => now()->addMinutes(30),
+        ]);
+        try {
+            $intent = $paymob->createCheckout($payment, $request->user(), 'ANA Refi feature request '.$featureRequest->id, rtrim(config('services.paymob.frontend_url'), '/').'/feature/'.$featureRequest->listing_id.'?featureRequestId='.$featureRequest->id);
+            $payment->update(['intention_id' => $intent['intention_id'], 'paymob_order_id' => $intent['order_id']]);
+        } catch (\Throwable $error) {
+            $payment->update(['status' => 'failed']);
+            \Illuminate\Support\Facades\Log::error('Paymob feature intention creation failed', ['payment_id' => $payment->id, 'reason' => $error->getMessage()]);
+            return response()->json(['message' => $error->getMessage()], str_contains($error->getMessage(), 'not configured') || str_contains($error->getMessage(), 'PAYMOB_FRONTEND_URL') ? 503 : 502);
+        }
+        return response()->json(['data' => ['payment_id' => $payment->id, 'status' => $payment->status, 'amount_cents' => $payment->amount_cents, 'currency' => $payment->currency, 'checkout_url' => $intent['checkout_url']]], 201);
+    }
+
+    public function featurePaymentStatus(Request $request, FeatureRequest $featureRequest)
+    {
+        abort_unless($featureRequest->host_id === $request->user()->id || $request->user()->userRoleByUserId()->where('role', 'admin')->exists(), 403);
+        $payment = \App\Models\Payment::where('feature_request_id', $featureRequest->id)->latest()->first();
+        return response()->json(['data' => ['request_status' => $featureRequest->status, 'payment_status' => $featureRequest->payment_status,
+            'attempt_status' => $payment?->status ?? 'unpaid', 'attempt_expires_at' => $payment?->expires_at,
+            'amount_cents' => $featureRequest->amount * 100, 'currency' => 'EGP', 'requires_review' => $payment?->requires_review ?? false]]);
     }
 
     public function updateFeatureRequest(Request $request, FeatureRequest $featureRequest)
     {
         $data = $request->validate(['status' => ['required', 'in:approved,rejected,pending'], 'admin_note' => ['sometimes', 'nullable', 'string', 'max:2000']]);
+        $verifiedPaymentExists = \App\Models\Payment::where('feature_request_id', $featureRequest->id)
+            ->where('status', 'paid')
+            ->where('requires_review', false)
+            ->exists();
+        abort_if($data['status'] === 'approved' && ($featureRequest->payment_status !== 'paid' || !$verifiedPaymentExists), 422, 'A verified payment is required before approval.');
         $featureRequest->update($data);
         if ($data['status'] === 'approved') Listing::whereKey($featureRequest->listing_id)->update(['is_featured' => true]);
         return response()->json(['data' => $featureRequest->refresh()]);

@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Competition;
 use App\Models\Listing;
 use App\Models\Notification;
+use App\Models\Payment;
 use App\Models\Profile;
 use App\Models\UserContact;
 use Illuminate\Http\Request;
@@ -67,8 +68,18 @@ class BookingController extends Controller
         $isOwner = $booking->user_id === $userId;
         $isAdmin = $request->user()->is_super_admin || $request->user()->userRoleByUserId()->where('role', 'admin')->exists();
         abort_unless($isAdmin || ($isHost && in_array($data['status'], ['confirmed', 'cancelled', 'completed'], true)) || ($isOwner && in_array($data['status'], ['confirmed', 'cancelled'], true)), 403);
+        if ($data['status'] === 'confirmed') {
+            abort_unless(Payment::where('booking_id', $booking->id)->where('status', 'paid')->exists(), 422, 'Only a verified payment webhook can confirm this booking.');
+        }
+        if ($data['status'] === 'cancelled') {
+            abort_unless(!Payment::where('booking_id', $booking->id)->where('status', 'paid')->exists(), 422, 'Paid bookings cannot be cancelled until refunds are supported.');
+            abort_unless(!Payment::where('booking_id', $booking->id)->where('status', 'pending')->where('expires_at', '>', now())->exists(), 422, 'Wait for the active payment attempt to finish before cancelling.');
+        }
         abort_if($booking->status === 'completed' || $booking->status === 'cancelled', 422, 'This booking can no longer be changed.');
         $booking->update($data);
+        if ($booking->status === 'cancelled') {
+            Payment::where('booking_id', $booking->id)->where('status', 'pending')->update(['status' => 'cancelled']);
+        }
         if ($booking->status !== 'pending' && $booking->user_id !== $userId) {
             Notification::create(['user_id' => $booking->user_id, 'type' => 'booking_status', 'title' => 'Booking status updated',
                 'body' => 'Your booking is '.$booking->status.'.', 'link' => '/dashboard', 'read' => false]);
@@ -80,6 +91,7 @@ class BookingController extends Controller
     {
         $isAdmin = $request->user()->is_super_admin || $request->user()->userRoleByUserId()->where('role', 'admin')->exists();
         abort_unless($isAdmin || $booking->host_id === $request->user()->id, 403);
+        abort_if(Payment::where('booking_id', $booking->id)->exists(), 422, 'A booking with a payment attempt must be retained for payment records.');
         $booking->delete();
         return response()->noContent();
     }

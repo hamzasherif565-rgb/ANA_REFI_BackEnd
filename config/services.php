@@ -8,6 +8,15 @@ return [
         'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
     ],
 
+    'paymob' => [
+        'secret_key' => env('PAYMOB_SECRET_KEY'),
+        'public_key' => env('PAYMOB_PUBLIC_KEY'),
+        'integration_id' => env('PAYMOB_INTEGRATION_ID'),
+        'hmac_secret' => env('PAYMOB_HMAC_SECRET'),
+        'frontend_url' => env('PAYMOB_FRONTEND_URL'),
+        'feature_price_egp' => env('FEATURE_REQUEST_PRICE_EGP', 500),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

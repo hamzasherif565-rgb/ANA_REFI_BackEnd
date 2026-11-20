@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Booking extends Model
@@ -32,4 +33,6 @@ class Booking extends Model
     public function listingByListingId(): BelongsTo { return $this->belongsTo(\App\Models\Listing::class, 'listing_id', 'id'); }
 
     public function userByUserId(): BelongsTo { return $this->belongsTo(\App\Models\User::class, 'user_id', 'id'); }
+
+    public function payments(): HasMany { return $this->hasMany(Payment::class, 'booking_id', 'id'); }
 }

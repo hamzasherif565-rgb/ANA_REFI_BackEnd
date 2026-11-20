@@ -6,9 +6,11 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\EngagementController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
+    Route::post('payments/paymob/webhook', [PaymentController::class, 'paymobWebhook'])->name('api.v1.payments.paymob.webhook');
     Route::prefix('auth')->group(function (): void {
         Route::get('google/redirect', [AuthController::class, 'googleRedirect'])->name('api.v1.auth.google.redirect');
         Route::get('google/callback', [AuthController::class, 'googleCallback'])->name('api.v1.auth.google.callback');
@@ -31,6 +33,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('competitions', [CatalogController::class, 'competitions']);
     Route::get('competitions/{competition}', [CatalogController::class, 'competition']);
     Route::post('contact-messages', [EngagementController::class, 'contact'])->middleware('throttle:10,1');
+    Route::get('feature-requests/price', [AdminController::class, 'featurePrice']);
     Route::get('volunteers', [AdminController::class, 'volunteers']);
     Route::get('community/posts', [EngagementController::class, 'posts']);
 
@@ -57,6 +60,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('bookings/{booking}', [BookingController::class, 'show']);
         Route::patch('bookings/{booking}', [BookingController::class, 'update']);
         Route::delete('bookings/{booking}', [BookingController::class, 'destroy']);
+        Route::post('bookings/{booking}/payment-intentions', [PaymentController::class, 'createIntent'])->middleware('throttle:10,1');
+        Route::get('bookings/{booking}/payment', [PaymentController::class, 'show']);
         Route::get('host/listings', [AdminController::class, 'hostListings'])->middleware('role:host');
         Route::get('host/competitions', [AdminController::class, 'hostCompetitions'])->middleware('role:host');
         Route::get('host/bookings', [BookingController::class, 'hostIndex'])->middleware('role:host');
@@ -77,6 +82,8 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('community/posts/{post}', [EngagementController::class, 'deletePost']);
 
         Route::post('feature-requests', [AdminController::class, 'createFeatureRequest'])->middleware('role:host');
+        Route::post('feature-requests/{featureRequest}/payment-intentions', [AdminController::class, 'createFeaturePaymentIntent'])->middleware(['role:host', 'throttle:10,1']);
+        Route::get('feature-requests/{featureRequest}/payment', [AdminController::class, 'featurePaymentStatus'])->middleware('role:host');
         Route::get('host/feature-requests', [AdminController::class, 'featureRequests'])->middleware('role:host');
         Route::post('volunteers/applications', [AdminController::class, 'applyVolunteer']);
         Route::get('volunteers/application', [AdminController::class, 'myVolunteerApplication']);
