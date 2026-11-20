@@ -50,7 +50,9 @@ class EngagementController extends Controller
     public function addReview(Request $request, Listing $listing)
     {
         abort_unless($listing->status === 'active', 404);
+        abort_unless(\App\Models\Booking::where('user_id', $request->user()->id)->where('listing_id', $listing->id)->where('status', 'completed')->whereHas('payments', fn ($query) => $query->where('status', 'paid')->where('requires_review', false))->exists(), 403, 'A completed, verified booking is required to review this listing.');
         $data = $request->validate(['rating' => ['required', 'integer', 'between:1,5'], 'comment' => ['nullable', 'string', 'max:500'], 'image_url' => ['nullable', 'url', 'max:2048']]);
+        abort_if(Review::where('listing_id', $listing->id)->where('user_id', $request->user()->id)->exists(), 409, 'You have already reviewed this listing.');
         $review = Review::create([...$data, 'listing_id' => $listing->id, 'user_id' => $request->user()->id]);
         return response()->json(['data' => $review->load('userByUserId.profileById')], 201);
     }

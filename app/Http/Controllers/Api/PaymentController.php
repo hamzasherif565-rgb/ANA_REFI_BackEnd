@@ -62,6 +62,7 @@ class PaymentController extends Controller
             'amount_cents' => $payment?->amount_cents ?? $booking->amount * 100,
             'currency' => $payment?->currency ?? 'EGP',
             'attempt_expires_at' => $payment?->expires_at,
+            'attempt_status' => $payment?->status ?? 'unpaid',
             'requires_review' => $payment?->requires_review ?? false,
         ]]);
     }

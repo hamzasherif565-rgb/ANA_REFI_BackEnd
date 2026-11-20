@@ -121,10 +121,20 @@ class PaymobWebhookTest extends TestCase
         $booking = $this->createBooking();
         $user = User::findOrFail($booking->user_id);
 
-        $this->actingAs($user)->patchJson('/api/v1/bookings/'.$booking->id, ['status' => 'confirmed', 'amount' => 1])->assertUnprocessable();
+        $this->actingAs($user)->patchJson('/api/v1/bookings/'.$booking->id, ['status' => 'confirmed', 'amount' => 1])->assertForbidden();
         $this->actingAs($user)->postJson('/api/v1/bookings/'.$booking->id.'/payment-intentions', ['amount' => 1])->assertServiceUnavailable();
         $this->assertDatabaseHas('public_bookings', ['id' => $booking->id, 'status' => 'pending', 'amount' => 500]);
         $this->assertDatabaseCount('payments', 0);
+    }
+
+    public function test_payment_status_exposes_latest_attempt_status_for_polling(): void
+    {
+        $booking = $this->createBooking();
+        Payment::create(['booking_id' => $booking->id, 'provider' => 'paymob', 'status' => 'pending', 'amount_cents' => 50000, 'currency' => 'EGP', 'paymob_order_id' => '9001']);
+        $user = User::findOrFail($booking->user_id);
+
+        $this->actingAs($user)->getJson('/api/v1/bookings/'.$booking->id.'/payment')
+            ->assertOk()->assertJsonPath('data.attempt_status', 'pending')->assertJsonPath('data.payment_status', 'pending');
     }
 
     public function test_repeated_checkout_start_does_not_create_a_second_live_attempt(): void

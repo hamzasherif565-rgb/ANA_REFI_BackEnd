@@ -25,7 +25,7 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate(['item_type' => ['required', Rule::in(['competition', 'stay', 'experience', 'product'])],
-            'item_id' => ['required', 'uuid'], 'booking_date' => ['sometimes', 'nullable', 'date', 'after_or_equal:today'],
+            'item_id' => ['required', 'uuid'], 'booking_date' => ['required_if:item_type,stay,experience', 'nullable', 'date', 'after_or_equal:today'],
             'guests' => ['sometimes', 'integer', 'min:1', 'max:100'], 'quantity' => ['sometimes', 'integer', 'min:1', 'max:100'], 'notes' => ['sometimes', 'nullable', 'string', 'max:2000']]);
 
         try {
@@ -39,17 +39,27 @@ class BookingController extends Controller
                     ->where('item_id', $item->id)->where('status', '!=', 'cancelled')->exists(), 422, 'You are already registered for this competition.');
                 $hostId = $item->host_id; $amount = (int) $item->entry_fee;
             } else {
-                $item = Listing::whereKey($data['item_id'])->where('type', $itemType)->where('status', 'active')->firstOrFail();
+                $item = Listing::whereKey($data['item_id'])->where('type', $itemType)->where('status', 'active')->lockForUpdate()->firstOrFail();
                 abort_if($item->host_id === $request->user()->id, 403, 'You cannot book your own listing.');
                 $hostId = $item->host_id; $listingId = $item->id;
                 $quantity = $itemType === 'product' ? (int) ($data['quantity'] ?? 1) : (int) ($data['guests'] ?? 1);
                 abort_if($item->capacity && $quantity > $item->capacity, 422, 'Requested quantity exceeds capacity.');
+                if ($item->capacity) {
+                    $reserved = Booking::where('listing_id', $item->id)->whereIn('status', ['pending', 'confirmed', 'completed']);
+                    if ($itemType === 'product') {
+                        $reservedQuantity = (int) $reserved->sum('guests');
+                    } else {
+                        $reservedQuantity = (int) $reserved->whereDate('booking_date', $data['booking_date'])->sum('guests');
+                    }
+                    abort_if($reservedQuantity + $quantity > $item->capacity, 422, 'This listing has no remaining capacity for the requested date or quantity.');
+                }
                 $amount = (int) round($item->price * (100 - min(100, (int) $item->discount)) / 100) * $quantity;
             }
 
             $booking = Booking::create(['user_id' => $request->user()->id, 'item_type' => $itemType, 'item_id' => $item->id,
                 'host_id' => $hostId, 'listing_id' => $listingId, 'status' => 'pending', 'amount' => $amount,
                 'booking_date' => $data['booking_date'] ?? null, 'guests' => (int) ($data['quantity'] ?? $data['guests'] ?? 1), 'notes' => $data['notes'] ?? null]);
+            if ($itemType === 'competition') $item->increment('participants_count');
             Notification::create(['user_id' => $booking->user_id, 'type' => 'booking_status', 'title' => 'Booking confirmation',
                 'body' => 'Your booking has been received.', 'link' => '/payment/'.$booking->id, 'read' => false]);
             return $booking;
@@ -73,27 +83,36 @@ class BookingController extends Controller
     {
         $data = $request->validate(['status' => ['required', Rule::in(['pending', 'confirmed', 'cancelled', 'completed'])], 'notes' => ['sometimes', 'nullable', 'string', 'max:2000']]);
         $userId = $request->user()->id;
-        $isHost = $booking->host_id === $userId;
-        $isOwner = $booking->user_id === $userId;
         $isAdmin = $request->user()->is_super_admin || $request->user()->userRoleByUserId()->where('role', 'admin')->exists();
-        abort_unless($isAdmin || ($isHost && in_array($data['status'], ['confirmed', 'cancelled', 'completed'], true)) || ($isOwner && in_array($data['status'], ['confirmed', 'cancelled'], true)), 403);
-        if ($data['status'] === 'confirmed') {
-            abort_unless(Payment::where('booking_id', $booking->id)->where('status', 'paid')->exists(), 422, 'Only a verified payment webhook can confirm this booking.');
-        }
-        if ($data['status'] === 'cancelled') {
-            abort_unless(!Payment::where('booking_id', $booking->id)->where('status', 'paid')->exists(), 422, 'Paid bookings cannot be cancelled until refunds are supported.');
-            abort_unless(!Payment::where('booking_id', $booking->id)->where('status', 'pending')->where('expires_at', '>', now())->exists(), 422, 'Wait for the active payment attempt to finish before cancelling.');
-        }
-        abort_if($booking->status === 'completed' || $booking->status === 'cancelled', 422, 'This booking can no longer be changed.');
-        $booking->update($data);
-        if ($booking->status === 'cancelled') {
-            Payment::where('booking_id', $booking->id)->where('status', 'pending')->update(['status' => 'cancelled']);
-        }
-        if ($booking->status !== 'pending' && $booking->user_id !== $userId) {
-            Notification::create(['user_id' => $booking->user_id, 'type' => 'booking_status', 'title' => 'Booking status updated',
-                'body' => 'Your booking is '.$booking->status.'.', 'link' => '/dashboard', 'read' => false]);
-        }
-        return response()->json(['data' => $this->present($booking->refresh())]);
+        return DB::transaction(function () use ($booking, $data, $userId, $isAdmin) {
+            $locked = Booking::whereKey($booking->id)->lockForUpdate()->firstOrFail();
+            $isHost = $locked->host_id === $userId;
+            $isOwner = $locked->user_id === $userId;
+            abort_unless($isAdmin || $isHost || ($isOwner && $data['status'] === 'cancelled'), 403);
+            abort_if(in_array($locked->status, ['completed', 'cancelled'], true), 422, 'This booking can no longer be changed.');
+            $allowedTransitions = ['pending' => ['confirmed', 'cancelled'], 'confirmed' => ['completed', 'cancelled']];
+            abort_unless(in_array($data['status'], $allowedTransitions[$locked->status] ?? [], true), 422, 'This booking status transition is not allowed.');
+            if ($data['status'] === 'confirmed') {
+                abort_unless($locked->amount === 0 || Payment::where('booking_id', $locked->id)->where('status', 'paid')->where('requires_review', false)->exists(), 422, 'A verified payment is required before confirming this booking.');
+            }
+            if ($data['status'] === 'completed') {
+                abort_unless($locked->amount === 0 || Payment::where('booking_id', $locked->id)->where('status', 'paid')->where('requires_review', false)->exists(), 422, 'A verified payment is required before completing this booking.');
+                abort_unless(!$locked->booking_date || $locked->booking_date->toDateString() <= today()->toDateString(), 422, 'A booking cannot be completed before its scheduled date.');
+            }
+            if ($data['status'] === 'cancelled') {
+                abort_unless(!Payment::where('booking_id', $locked->id)->where('status', 'paid')->exists(), 422, 'Paid bookings cannot be cancelled until refunds are supported.');
+                abort_unless(!Payment::where('booking_id', $locked->id)->where('status', 'pending')->where('expires_at', '>', now())->exists(), 422, 'Wait for the active payment attempt to finish before cancelling.');
+            }
+            $previousStatus = $locked->status;
+            $locked->update($data);
+            if ($previousStatus !== 'cancelled' && $locked->status === 'cancelled' && $locked->item_type === 'competition') {
+                $competition = Competition::whereKey($locked->item_id)->lockForUpdate()->first();
+                if ($competition) $competition->update(['participants_count' => max(0, (int) $competition->participants_count - 1)]);
+            }
+            if ($locked->status === 'cancelled') Payment::where('booking_id', $locked->id)->where('status', 'pending')->update(['status' => 'cancelled']);
+            if ($locked->status !== 'pending' && $locked->user_id !== $userId) Notification::create(['user_id' => $locked->user_id, 'type' => 'booking_status', 'title' => 'Booking status updated', 'body' => 'Your booking is '.$locked->status.'.', 'link' => '/dashboard', 'read' => false]);
+            return response()->json(['data' => $this->present($locked->refresh())]);
+        });
     }
 
     public function destroy(Request $request, Booking $booking)

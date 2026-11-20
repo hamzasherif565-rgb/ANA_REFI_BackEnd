@@ -56,6 +56,7 @@ class CatalogController extends Controller
     public function storeListing(Request $request)
     {
         $data = $request->validate($this->listingRules());
+        if (!$this->isVerifiedHost($request)) $data['status'] = 'draft';
         $data['host_id'] = $request->user()->id;
         return (new ListingResource(Listing::create($data)))->response()->setStatusCode(201);
     }
@@ -63,7 +64,9 @@ class CatalogController extends Controller
     public function updateListing(Request $request, Listing $listing)
     {
         $this->authorizeOwner($request, $listing->host_id);
-        $listing->update($request->validate($this->listingRules(true)));
+        $data = $request->validate($this->listingRules(true));
+        if (($data['status'] ?? null) === 'active' && !$this->isVerifiedHost($request) && !$this->isAdmin()) abort(403, 'Host verification is required before publishing listings.');
+        $listing->update($data);
         return new ListingResource($listing->refresh());
     }
 
@@ -95,6 +98,7 @@ class CatalogController extends Controller
     public function storeCompetition(Request $request)
     {
         $data = $request->validate($this->competitionRules());
+        if (!$this->isVerifiedHost($request)) $data['status'] = 'draft';
         $data['host_id'] = $request->user()->id;
         return (new CompetitionResource(Competition::create($data)))->response()->setStatusCode(201);
     }
@@ -102,8 +106,10 @@ class CatalogController extends Controller
     public function updateCompetition(Request $request, Competition $competition)
     {
         $this->authorizeOwner($request, $competition->host_id);
+        $data = $request->validate($this->competitionRules(true));
+        if (isset($data['status']) && in_array($data['status'], ['open', 'upcoming'], true) && !$this->isVerifiedHost($request) && !$this->isAdmin()) abort(403, 'Host verification is required before publishing competitions.');
         $previousStatus = $competition->status;
-        $competition->update($request->validate($this->competitionRules(true)));
+        $competition->update($data);
         if ($previousStatus !== $competition->status) {
             Booking::where('item_type', 'competition')->where('item_id', $competition->id)->whereNotIn('status', ['cancelled'])->pluck('user_id')->unique()->each(function (string $userId) use ($competition): void {
                 Notification::create(['user_id' => $userId, 'type' => 'competition_update', 'title' => 'Competition update',
@@ -166,5 +172,10 @@ class CatalogController extends Controller
     private function isAdmin(): bool
     {
         return auth()->user()?->is_super_admin || auth()->user()?->userRoleByUserId()->where('role', 'admin')->exists();
+    }
+
+    private function isVerifiedHost(Request $request): bool
+    {
+        return \App\Models\HostVerification::where('user_id', $request->user()->id)->where('status', 'approved')->exists();
     }
 }

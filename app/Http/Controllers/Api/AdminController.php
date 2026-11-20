@@ -25,6 +25,25 @@ class AdminController extends Controller
         return response()->json(['data' => Listing::latest()->paginate(min((int) $request->integer('per_page', 100), 100))]);
     }
 
+    public function updateListingStatus(Request $request, Listing $listing)
+    {
+        $data = $request->validate(['status' => ['required', 'in:active,draft,blocked']]);
+        $listing->update($data);
+        return response()->json(['data' => $listing->refresh()]);
+    }
+
+    public function competitions(Request $request)
+    {
+        return response()->json(['data' => Competition::latest()->paginate(min((int) $request->integer('per_page', 100), 100))]);
+    }
+
+    public function updateCompetitionStatus(Request $request, Competition $competition)
+    {
+        $data = $request->validate(['status' => ['required', 'in:draft,upcoming,open,closed,completed,cancelled']]);
+        $competition->update($data);
+        return response()->json(['data' => $competition->refresh()]);
+    }
+
     public function publicProfiles(Request $request)
     {
         $ids = array_filter(explode(',', (string) $request->query('ids', '')));
@@ -46,7 +65,23 @@ class AdminController extends Controller
     public function saveHostVerification(Request $request)
     {
         $data = $request->validate(['first_name' => ['required', 'string', 'max:100'], 'last_name' => ['required', 'string', 'max:100'], 'national_id' => ['required', 'digits:14'], 'id_front_path' => ['required', 'string', 'max:1024'], 'id_back_path' => ['required', 'string', 'max:1024']]);
+        foreach (['id_front_path', 'id_back_path'] as $field) {
+            $path = $data[$field];
+            abort_unless(str_starts_with($path, 'identity-docs/'.$request->user()->id.'/') && \Illuminate\Support\Facades\Storage::disk('local')->exists($path), 422, 'Upload both identity documents before submitting verification.');
+        }
         return response()->json(['data' => \App\Models\HostVerification::updateOrCreate(['user_id' => $request->user()->id], [...$data, 'status' => 'pending'])], 201);
+    }
+
+    public function hostVerifications(Request $request)
+    {
+        return response()->json(['data' => \App\Models\HostVerification::with('userByUserId.profileById')->latest()->paginate(min((int) $request->integer('per_page', 50), 100))]);
+    }
+
+    public function updateHostVerification(Request $request, \App\Models\HostVerification $verification)
+    {
+        $data = $request->validate(['status' => ['required', 'in:pending,approved,rejected']]);
+        $verification->update($data);
+        return response()->json(['data' => $verification->refresh()]);
     }
 
     public function users(Request $request)
@@ -96,13 +131,16 @@ class AdminController extends Controller
         abort_unless(config('services.paymob.secret_key') && config('services.paymob.public_key') && config('services.paymob.integration_id') && config('services.paymob.hmac_secret'), 503, 'Electronic payments are not configured yet.');
         $phone = $request->user()->phone ?: UserContact::where('user_id', $request->user()->id)->value('phone');
         abort_unless($phone, 422, 'Add a phone number to your profile before paying.');
-        abort_if(\App\Models\Payment::where('feature_request_id', $featureRequest->id)->where('status', 'pending')->where('expires_at', '>', now())->exists(), 409, 'A payment attempt is already pending.');
-
-        $payment = \App\Models\Payment::create([
-            'feature_request_id' => $featureRequest->id, 'provider' => 'paymob', 'status' => 'pending',
-            'amount_cents' => $featureRequest->amount * 100, 'currency' => 'EGP',
-            'expires_at' => now()->addMinutes(30),
-        ]);
+        $payment = DB::transaction(function () use ($featureRequest) {
+            $locked = FeatureRequest::whereKey($featureRequest->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->status === 'pending' && $locked->payment_status !== 'paid', 422, 'This feature request is no longer payable.');
+            abort_if(\App\Models\Payment::where('feature_request_id', $locked->id)->where('status', 'pending')->where('expires_at', '>', now())->exists(), 409, 'A payment attempt is already pending.');
+            return \App\Models\Payment::create([
+                'feature_request_id' => $locked->id, 'provider' => 'paymob', 'status' => 'pending',
+                'amount_cents' => $locked->amount * 100, 'currency' => 'EGP',
+                'expires_at' => now()->addMinutes(30),
+            ]);
+        });
         try {
             $intent = $paymob->createCheckout($payment, $request->user(), 'ANA Refi feature request '.$featureRequest->id, rtrim(config('services.paymob.frontend_url'), '/').'/feature/'.$featureRequest->listing_id.'?featureRequestId='.$featureRequest->id);
             $payment->update(['intention_id' => $intent['intention_id'], 'paymob_order_id' => $intent['order_id']]);

@@ -47,12 +47,12 @@ Route::prefix('v1')->group(function (): void {
         Route::post('uploads/listing-images', [CatalogController::class, 'uploadListingImage']);
         Route::post('uploads/identity-documents', [CatalogController::class, 'uploadIdentity']);
         Route::put('host/verification', [AdminController::class, 'saveHostVerification']);
-        Route::post('listings', [CatalogController::class, 'storeListing']);
-        Route::patch('listings/{listing}', [CatalogController::class, 'updateListing']);
-        Route::delete('listings/{listing}', [CatalogController::class, 'deleteListing']);
-        Route::post('competitions', [CatalogController::class, 'storeCompetition']);
-        Route::patch('competitions/{competition}', [CatalogController::class, 'updateCompetition']);
-        Route::delete('competitions/{competition}', [CatalogController::class, 'deleteCompetition']);
+        Route::post('listings', [CatalogController::class, 'storeListing'])->middleware('role:host');
+        Route::patch('listings/{listing}', [CatalogController::class, 'updateListing'])->middleware('role:host');
+        Route::delete('listings/{listing}', [CatalogController::class, 'deleteListing'])->middleware('role:host');
+        Route::post('competitions', [CatalogController::class, 'storeCompetition'])->middleware('role:host');
+        Route::patch('competitions/{competition}', [CatalogController::class, 'updateCompetition'])->middleware('role:host');
+        Route::delete('competitions/{competition}', [CatalogController::class, 'deleteCompetition'])->middleware('role:host');
         Route::get('competitions/{competition}/participants', [BookingController::class, 'participants']);
 
         Route::get('bookings', [BookingController::class, 'index']);
@@ -93,11 +93,16 @@ Route::prefix('v1')->group(function (): void {
 
         Route::middleware('role:admin')->prefix('admin')->group(function (): void {
             Route::get('listings', [AdminController::class, 'listings']);
+            Route::get('competitions', [AdminController::class, 'competitions']);
             Route::get('users', [AdminController::class, 'users']);
+            Route::get('host-verifications', [AdminController::class, 'hostVerifications']);
+            Route::patch('host-verifications/{verification}', [AdminController::class, 'updateHostVerification']);
             Route::patch('users/{user}/block', [AdminController::class, 'block']);
             Route::get('feature-requests', [AdminController::class, 'featureRequests']);
             Route::patch('feature-requests/{featureRequest}', [AdminController::class, 'updateFeatureRequest']);
             Route::patch('listings/{listing}/featured', [AdminController::class, 'toggleFeatured']);
+            Route::patch('listings/{listing}/status', [AdminController::class, 'updateListingStatus']);
+            Route::patch('competitions/{competition}/status', [AdminController::class, 'updateCompetitionStatus']);
             Route::get('volunteers', [AdminController::class, 'volunteers']);
             Route::patch('volunteers/{volunteer}', [AdminController::class, 'updateVolunteer']);
             Route::delete('volunteers/{volunteer}', [AdminController::class, 'deleteVolunteer']);
