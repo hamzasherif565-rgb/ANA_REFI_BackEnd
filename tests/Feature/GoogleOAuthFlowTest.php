@@ -62,11 +62,17 @@ class GoogleOAuthFlowTest extends TestCase
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
+        Schema::create('public_listings', function (Blueprint $table): void {
+            $table->string('id')->primary();
+            $table->string('host_id');
+            $table->timestamp('created_at')->nullable();
+        });
     }
 
     protected function tearDown(): void
     {
         Schema::dropIfExists('personal_access_tokens');
+        Schema::dropIfExists('public_listings');
         Schema::dropIfExists('public_user_contacts');
         Schema::dropIfExists('public_user_roles');
         Schema::dropIfExists('public_profiles');
@@ -205,6 +211,55 @@ class GoogleOAuthFlowTest extends TestCase
         $this->travel(2)->minutes();
         $this->withToken($registration->json('token'))->getJson('/api/v1/auth/user')->assertUnauthorized();
         $this->travelBack();
+    }
+
+    public function test_current_user_repairs_a_missing_host_role_for_a_selected_host_profile(): void
+    {
+        $registration = $this->postJson('/api/v1/auth/register', [
+            'first_name' => 'Test', 'last_name' => 'Host', 'email' => 'host@example.test',
+            'phone' => '01000000002', 'password' => 'StrongPass123!', 'password_confirmation' => 'StrongPass123!',
+            'account_type' => 'host', 'national_id' => '12345678901234',
+        ])->assertCreated();
+
+        $userId = $registration->json('data.user.id');
+        \Illuminate\Support\Facades\DB::table('public_user_roles')
+            ->where('user_id', $userId)->where('role', 'host')->delete();
+
+        $this->withToken($registration->json('token'))->getJson('/api/v1/auth/user')
+            ->assertOk()
+            ->assertJsonPath('data.profile.account_type', 'host')
+            ->assertJsonPath('data.profile.role_selected', true)
+            ->assertJsonPath('data.roles.0', 'host');
+
+        $this->assertDatabaseHas('public_user_roles', ['user_id' => $userId, 'role' => 'host']);
+    }
+
+    public function test_host_activation_grants_dashboard_api_access_without_granting_it_to_travelers(): void
+    {
+        $hostRegistration = $this->postJson('/api/v1/auth/register', [
+            'first_name' => 'Test', 'last_name' => 'Traveler', 'email' => 'activation@example.test',
+            'phone' => '01000000003', 'password' => 'StrongPass123!', 'password_confirmation' => 'StrongPass123!',
+            'account_type' => 'traveler',
+        ])->assertCreated();
+        $hostToken = $hostRegistration->json('token');
+
+        $this->withToken($hostToken)->postJson('/api/v1/profile/become-host')
+            ->assertOk()
+            ->assertJsonPath('data.account_type', 'host');
+        $this->assertDatabaseHas('public_user_roles', [
+            'user_id' => $hostRegistration->json('data.user.id'), 'role' => 'host',
+        ]);
+        app('auth')->forgetGuards();
+        $this->withToken($hostToken)->getJson('/api/v1/host/listings')->assertOk();
+
+        app('auth')->forgetGuards();
+        $travelerRegistration = $this->postJson('/api/v1/auth/register', [
+            'first_name' => 'Test', 'last_name' => 'Traveler', 'email' => 'traveler-role@example.test',
+            'phone' => '01000000004', 'password' => 'StrongPass123!', 'password_confirmation' => 'StrongPass123!',
+            'account_type' => 'traveler',
+        ])->assertCreated();
+        app('auth')->forgetGuards();
+        $this->withToken($travelerRegistration->json('token'))->getJson('/api/v1/host/listings')->assertForbidden();
     }
 
     public function test_google_callback_redirects_back_when_google_rejects_the_token_exchange(): void

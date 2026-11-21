@@ -189,6 +189,12 @@ class AuthController extends Controller
     private function userData(User $user, bool $includePhone): array
     {
         $profile = Profile::firstOrCreate(['id' => $user->id]);
+        // Older accounts can have a selected host profile without the matching
+        // role row. Keep the authorization record aligned with that server-side
+        // selection before exposing roles to the client.
+        if ($profile->role_selected && $profile->account_type === 'host') {
+            $user->userRoleByUserId()->firstOrCreate(['role' => UserRole::forAccountType('host')]);
+        }
         $roles = $user->userRoleByUserId()->pluck('role')->values();
         $phone = $includePhone ? UserContact::where('user_id', $user->id)->value('phone') : null;
         return ['user' => ['id' => $user->id, 'email' => $user->email], 'profile' => [
